@@ -2,7 +2,7 @@
 No bullshit blazing fast geoip server
 
 ## Usage:
-Download and uncompress the maxmind geocity database.
+Download and uncompress the maxmind [geolite2 (city)](https://dev.maxmind.com/geoip/geoip2/geolite2/) database.
 ```
 geoip:
   -b, --bindip string        the ip address to bind to (default "0.0.0.0")
