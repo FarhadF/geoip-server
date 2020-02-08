@@ -4,7 +4,7 @@ No bullshit blazing fast geoip server
 ## Usage:
 1. Sign up(free) for maxmind [geolite2 (city)](https://dev.maxmind.com/geoip/geoip2/geolite2/) database. 
 2. Login and go to my licenses and generate a new license(free). 
-3. Build : ```go build geoip.go
+3. Build : ```go build geoip.go```
 3. use the flags to provide token and accountid from previous step and run.
 4. if you are using default routeprefix try: ```curl localhost:8080/geoip/json/50.19.0.1```
 ```
