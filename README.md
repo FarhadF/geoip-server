@@ -17,3 +17,10 @@ geoip:
   -r, --routeprefix string   route prefix for geoip service, cant be empty (default "/geoip")
   -u, --updateinterval int   intervals (hour) to check for database updates (default 24)
 ```
+
+
+## Docker:
+1. Clone the repository
+2. ```docker build . -t geoip-server```
+3. ```docker run  -p 8080:8080 geoip-server /geoip  -l <license token> -a <accountid>```
+4. ```curl localhost:8080/geoip/json/50.19.0.1```
