@@ -15,20 +15,22 @@ import (
 	"time"
 )
 
+const urlTemplate string = "https://updates.maxmind.com/geoip/databases/%s/update"
+
 type geoResponseStruct struct {
 	IP          string  `json:"ip"`
-	Continent   string  `json:"continent"`
-	CountryName string  `json:"country_name"`
 	CountryCode string  `json:"country_code"`
-	StateName   string  `json:"state_name"`
-	CityName    string  `json:"city_name"`
+	CountryName string  `json:"country_name"`
+	Continent   string  `json:"continent"`
+	StateCode   string  `json:"region_code"`
+	StateName   string  `json:"region_name"`
+	CityName    string  `json:"city"`
 	PostalCode  string  `json:"zip_code"`
+	TimeZone    string  `json:"time_zone"`
 	Latitude    float64 `json:"latitude"`
 	Longitude   float64 `json:"longitude"`
-	TimeZone    string  `json:"time_zone"`
+	MetroCode   int     `json:"metro_code"`
 }
-
-var dbBytes []byte
 
 type maxmind struct {
 	mutex sync.RWMutex
@@ -56,7 +58,7 @@ func main() {
 	pflag.StringVarP(&prefix, "routeprefix", "r", "/geoip", "route prefix for geoip service, cant be empty")
 
 	pflag.Parse()
-	url := fmt.Sprintf("https://updates.maxmind.com/geoip/databases/%s/update", edition)
+	url := fmt.Sprintf(urlTemplate, edition)
 	db, err := download(url, accountid, license)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
@@ -73,6 +75,7 @@ func main() {
 			db, err := download(url, accountid, license)
 			if err != nil {
 				log.Error().Err(err).Msg("downloading update failed")
+				continue
 			}
 			log.Info().Msg("download finished")
 			err = reload(db)
@@ -136,14 +139,17 @@ func geoHandler(w http.ResponseWriter, _ *http.Request, ps httprouter.Params) {
 		return
 	}
 	stateName := ""
+	stateCode := ""
 	if len(geo.Subdivisions) > 0 {
 		stateName = geo.Subdivisions[0].Names["en"]
+		stateCode = geo.Subdivisions[0].IsoCode
 	}
 	resp := geoResponseStruct{
 		IP:          ipStr,
-		Continent:   geo.Continent.Names["en"],
-		CountryName: geo.Country.Names["en"],
 		CountryCode: geo.Country.IsoCode,
+		CountryName: geo.Country.Names["en"],
+		Continent:   geo.Continent.Names["en"],
+		StateCode:   stateCode,
 		StateName:   stateName,
 		CityName:    geo.City.Names["en"],
 		PostalCode:  geo.Postal.Code,
@@ -155,13 +161,13 @@ func geoHandler(w http.ResponseWriter, _ *http.Request, ps httprouter.Params) {
 	geoResponse(w, resp)
 }
 
-func download(url string, accountid int, license string) ([]byte, error) {
+func download(url string, accountId int, license string) ([]byte, error) {
 	log.Info().Msg("Starting to download the database")
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.SetBasicAuth(fmt.Sprintf("%d", accountid), license)
+	req.SetBasicAuth(fmt.Sprintf("%d", accountId), license)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
